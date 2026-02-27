@@ -1,0 +1,48 @@
+# ── Python ────────────────────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.so
+
+# ── Node / Next.js ────────────────────────────────────────────────────────
+node_modules/
+.npm/
+webapp/frontend/.next/
+# webapp/static/ is intentionally committed (pre-built frontend for deployment)
+
+# ── Environment secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# NOTE: webapp/frontend/.env.local is committed only if it has no secrets
+# For production, set NEXT_PUBLIC_API_URL via environment variable
+
+# ── OS / editor ───────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Runtime / temp ────────────────────────────────────────────────────────
+*.log
+tmp/
+temp/
+*.tmp
+
+# ── Test / coverage ───────────────────────────────────────────────────────
+.coverage
+htmlcov/

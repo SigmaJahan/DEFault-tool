@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: default-tool
+    env: python
+    # The frontend is pre-built (webapp/static/ is committed to the repo).
+    # Only Python runtime dependencies are needed here.
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DEFAULT_ALLOW_UNTRUSTED_CODE
+        value: "0"
+    # Free-tier: 512 MB RAM. TensorFlow (Train & Diagnose) requires ~1 GB.
+    # Upgrade to Starter plan and add INSTALL_TENSORFLOW=1 for full training support.

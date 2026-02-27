@@ -1,0 +1,310 @@
+{
+  "models": {
+    "detection": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/A_Detection/1st_Level_OverSampled.csv",
+      "positive_label": "buggy",
+      "threshold": 0.45000000000000007,
+      "metrics": {
+        "0": {
+          "precision": 0.9838012958963283,
+          "recall": 0.9489583333333333,
+          "f1-score": 0.9660657476139979,
+          "support": 960.0
+        },
+        "1": {
+          "precision": 0.9755610972568578,
+          "recall": 0.9923896499238964,
+          "f1-score": 0.9839034205231388,
+          "support": 1971.0
+        },
+        "accuracy": 0.9781644489935176,
+        "macro avg": {
+          "precision": 0.979681196576593,
+          "recall": 0.9706739916286149,
+          "f1-score": 0.9749845840685684,
+          "support": 2931.0
+        },
+        "weighted avg": {
+          "precision": 0.9782600364222934,
+          "recall": 0.9781644489935176,
+          "f1-score": 0.9780609892734714,
+          "support": 2931.0
+        },
+        "roc_auc": 0.9973717867410788,
+        "threshold": 0.45000000000000007
+      }
+    },
+    "activation": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/activation_correct_data.csv",
+      "positive_label": "Activation",
+      "threshold": 0.05,
+      "metrics": {
+        "0": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 63.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 62.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 125.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 125.0
+        },
+        "roc_auc": 1.0,
+        "threshold": 0.05
+      }
+    },
+    "layer": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/layer_correct_data.csv",
+      "positive_label": "Layer",
+      "threshold": 0.43000000000000005,
+      "metrics": {
+        "0": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 270.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 269.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 539.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 539.0
+        },
+        "roc_auc": 1.0,
+        "threshold": 0.43000000000000005
+      }
+    },
+    "hyperparameter": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/hyperparameter_correct_data.csv",
+      "positive_label": "Hyperparameter",
+      "threshold": 0.5700000000000001,
+      "metrics": {
+        "0": {
+          "precision": 0.9846449136276392,
+          "recall": 0.996116504854369,
+          "f1-score": 0.9903474903474904,
+          "support": 515.0
+        },
+        "1": {
+          "precision": 0.9960629921259843,
+          "recall": 0.9844357976653697,
+          "f1-score": 0.9902152641878669,
+          "support": 514.0
+        },
+        "accuracy": 0.9902818270165209,
+        "macro avg": {
+          "precision": 0.9903539528768117,
+          "recall": 0.9902761512598693,
+          "f1-score": 0.9902813772676786,
+          "support": 1029.0
+        },
+        "weighted avg": {
+          "precision": 0.9903484047337124,
+          "recall": 0.9902818270165209,
+          "f1-score": 0.9902814415175133,
+          "support": 1029.0
+        },
+        "roc_auc": 0.9994106758339315,
+        "threshold": 0.5700000000000001
+      }
+    },
+    "loss": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/loss_correct_data.csv",
+      "positive_label": "Loss",
+      "threshold": 0.6500000000000001,
+      "metrics": {
+        "0": {
+          "precision": 0.9706546275395034,
+          "recall": 1.0,
+          "f1-score": 0.9851088201603666,
+          "support": 430.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 0.9696969696969697,
+          "f1-score": 0.9846153846153847,
+          "support": 429.0
+        },
+        "accuracy": 0.9848661233993015,
+        "macro avg": {
+          "precision": 0.9853273137697517,
+          "recall": 0.9848484848484849,
+          "f1-score": 0.9848621023878756,
+          "support": 859.0
+        },
+        "weighted avg": {
+          "precision": 0.9853102326449201,
+          "recall": 0.9848661233993015,
+          "f1-score": 0.9848623896029775,
+          "support": 859.0
+        },
+        "roc_auc": 0.9990133897110641,
+        "threshold": 0.6500000000000001
+      }
+    },
+    "optimization": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/Optimization_correct_data.csv",
+      "positive_label": "Optimization",
+      "threshold": 0.56,
+      "metrics": {
+        "0": {
+          "precision": 0.984,
+          "recall": 0.9919354838709677,
+          "f1-score": 0.9879518072289156,
+          "support": 248.0
+        },
+        "1": {
+          "precision": 0.991869918699187,
+          "recall": 0.9838709677419355,
+          "f1-score": 0.9878542510121457,
+          "support": 248.0
+        },
+        "accuracy": 0.9879032258064516,
+        "macro avg": {
+          "precision": 0.9879349593495934,
+          "recall": 0.9879032258064516,
+          "f1-score": 0.9879030291205306,
+          "support": 496.0
+        },
+        "weighted avg": {
+          "precision": 0.9879349593495934,
+          "recall": 0.9879032258064516,
+          "f1-score": 0.9879030291205306,
+          "support": 496.0
+        },
+        "roc_auc": 0.9987968262226847,
+        "threshold": 0.56
+      }
+    },
+    "regularizer": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/regularizer_correct_data.csv",
+      "positive_label": "Regularizer",
+      "threshold": 0.4900000000000001,
+      "metrics": {
+        "0": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 51.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 51.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 102.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 102.0
+        },
+        "roc_auc": 1.0,
+        "threshold": 0.4900000000000001
+      }
+    },
+    "weights": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/B_Categorization/Training_Data/weight_correct_data.csv",
+      "positive_label": "Weight",
+      "threshold": 0.4600000000000001,
+      "metrics": {
+        "0": {
+          "precision": 0.9974874371859297,
+          "recall": 1.0,
+          "f1-score": 0.9987421383647799,
+          "support": 397.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 0.9974811083123426,
+          "f1-score": 0.9987389659520807,
+          "support": 397.0
+        },
+        "accuracy": 0.9987405541561712,
+        "macro avg": {
+          "precision": 0.9987437185929648,
+          "recall": 0.9987405541561714,
+          "f1-score": 0.9987405521584303,
+          "support": 794.0
+        },
+        "weighted avg": {
+          "precision": 0.9987437185929648,
+          "recall": 0.9987405541561712,
+          "f1-score": 0.9987405521584303,
+          "support": 794.0
+        },
+        "roc_auc": 0.9999746207386634,
+        "threshold": 0.4600000000000001
+      }
+    },
+    "static_layer": {
+      "dataset": "/Users/sigmajahan/Desktop/Dynamic_Feature/DEFault_Repo_MyOriginal/d_DEFault/C_RootCauseAnalysis/static_features_df.csv",
+      "positive_label": 1,
+      "threshold": 0.4900000000000001,
+      "metrics": {
+        "0": {
+          "precision": 0.5890736342042755,
+          "recall": 0.7359050445103857,
+          "f1-score": 0.6543535620052771,
+          "support": 337.0
+        },
+        "1": {
+          "precision": 0.6468253968253969,
+          "recall": 0.4851190476190476,
+          "f1-score": 0.5544217687074829,
+          "support": 336.0
+        },
+        "accuracy": 0.6106983655274889,
+        "macro avg": {
+          "precision": 0.6179495155148362,
+          "recall": 0.6105120460647167,
+          "f1-score": 0.60438766535638,
+          "support": 673.0
+        },
+        "weighted avg": {
+          "precision": 0.6179066093018933,
+          "recall": 0.6106983655274889,
+          "f1-score": 0.6044619088878048,
+          "support": 673.0
+        },
+        "roc_auc": 0.6467782958880881,
+        "threshold": 0.4900000000000001
+      }
+    }
+  }
+}
