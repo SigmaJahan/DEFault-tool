@@ -23,11 +23,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Optional TensorFlow for "Train & Diagnose" endpoint.
-# Build with: docker build --build-arg INSTALL_TENSORFLOW=1 ...
-ARG INSTALL_TENSORFLOW=0
+# TensorFlow for "Train & Diagnose" endpoint.
+# Included by default (required for full functionality on HF Spaces).
+# Skip with: docker build --build-arg INSTALL_TENSORFLOW=0 ...
+ARG INSTALL_TENSORFLOW=1
 RUN if [ "$INSTALL_TENSORFLOW" = "1" ]; then \
-      pip install --no-cache-dir "tensorflow>=2.16,<3"; \
+      pip install --no-cache-dir "tensorflow-cpu>=2.16,<3"; \
     fi
 
 # Copy application code
@@ -46,7 +47,8 @@ COPY README.md ./README.md
 # Copy built frontend from Stage 1
 COPY --from=frontend-builder /app/webapp/static ./webapp/static
 
-EXPOSE 8000
+# HF Spaces uses PORT=7860; local Docker can override with -e PORT=8000
+EXPOSE 7860
 ENV DEFAULT_ALLOW_UNTRUSTED_CODE=0
 
-CMD ["uvicorn", "webapp.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn webapp.main:app --host 0.0.0.0 --port ${PORT:-7860}

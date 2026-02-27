@@ -1,3 +1,14 @@
+---
+title: DEFault Tool
+emoji: 🔍
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+short_description: Detect and explain faults in deep neural networks (ICSE 2025)
+---
+
 # DEFault: Detect and Explain Faults in Deep Neural Networks
 
 A professional web tool for diagnosing faults in Keras/TensorFlow models, based on the ICSE 2025 paper:
