@@ -6,7 +6,7 @@ colorTo: purple
 sdk: docker
 pinned: false
 license: mit
-short_description: Detect and explain faults in deep neural networks (ICSE 2025)
+short_description: Detect & explain faults in deep neural networks
 ---
 
 # DEFault: Detect and Explain Faults in Deep Neural Networks
