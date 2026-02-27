@@ -95,36 +95,26 @@ Open: `http://localhost:8000`
 
 ---
 
-## Docker Deployment
+## Live Demo
 
-```bash
-# Standard build (no TensorFlow; Train & Diagnose returns a friendly error)
-docker build -t default-tool .
-docker run --rm -p 8000:8000 default-tool
-
-# Full build (includes TensorFlow, ~2 GB image)
-docker build --build-arg INSTALL_TENSORFLOW=1 -t default-tool:full .
-docker run --rm -p 8000:8000 default-tool:full
-```
-
-The Dockerfile uses a 2-stage build: Node.js builds the frontend, then Python serves everything.
+**Hosted on Hugging Face Spaces (free, always on):**
+**https://huggingface.co/spaces/sigmajahan/DEFault-tool**
 
 ---
 
-## Render Deployment
+## Docker Deployment
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SigmaJahan/DEFault-tool)
+```bash
+# Standard build — TensorFlow included by default
+docker build -t default-tool .
+docker run --rm -p 7860:7860 default-tool
 
-`render.yaml` is included for automatic Blueprint deployment. Click the button above or:
+# Skip TensorFlow for a lighter image (~500 MB vs ~2 GB)
+docker build --build-arg INSTALL_TENSORFLOW=0 -t default-tool:lite .
+docker run --rm -p 7860:7860 default-tool:lite
+```
 
-1. Go to [Render Dashboard](https://dashboard.render.com/select-repo) → **New Blueprint**
-2. Connect your GitHub account and select **SigmaJahan/DEFault-tool**
-3. Render will read `render.yaml` and configure the service automatically
-4. Click **Apply** — the app will be live at a `*.onrender.com` URL within ~2 minutes
-
-The frontend is pre-built in `webapp/static/`, so no Node.js build step is needed.
-
-> **Note**: Free-tier Render (512 MB RAM) covers static analysis. The "Train & Diagnose" feature requires TensorFlow (~1 GB RAM); upgrade to Starter plan and add `pip install tensorflow` to the build command.
+The Dockerfile uses a 2-stage build: Node.js builds the frontend, Python serves everything. The app binds to `$PORT` (default 7860).
 
 ---
 
@@ -144,7 +134,6 @@ DEFault-tool/
 │   └── frontend/               # Next.js 16 + TypeScript web app
 ├── webapp/static/              # Pre-built frontend (committed for deployment)
 ├── Dockerfile                  # Multi-stage Docker build
-├── render.yaml                 # Render deployment config
 └── requirements.txt            # Python dependencies
 ```
 
