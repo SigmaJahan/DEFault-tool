@@ -102,11 +102,18 @@ The Dockerfile uses a 2-stage build: Node.js builds the frontend, then Python se
 
 ## Render Deployment
 
-`render.yaml` is included. Push to GitHub, then create a new **Render Blueprint** deployment.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SigmaJahan/DEFault-tool)
 
-The frontend is pre-built in `webapp/static/`, so no Node.js build step is needed on Render.
+`render.yaml` is included for automatic Blueprint deployment. Click the button above or:
 
-> **Note**: The free-tier Render instance (512 MB RAM) is sufficient for static analysis. Upgrade to Starter plan to enable "Train & Diagnose" with TensorFlow.
+1. Go to [Render Dashboard](https://dashboard.render.com/select-repo) → **New Blueprint**
+2. Connect your GitHub account and select **SigmaJahan/DEFault-tool**
+3. Render will read `render.yaml` and configure the service automatically
+4. Click **Apply** — the app will be live at a `*.onrender.com` URL within ~2 minutes
+
+The frontend is pre-built in `webapp/static/`, so no Node.js build step is needed.
+
+> **Note**: Free-tier Render (512 MB RAM) covers static analysis. The "Train & Diagnose" feature requires TensorFlow (~1 GB RAM); upgrade to Starter plan and add `pip install tensorflow` to the build command.
 
 ---
 
