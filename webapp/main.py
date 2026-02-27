@@ -268,14 +268,19 @@ async def train_and_diagnose(
     )
 
 
-# ── Catch-all: serve Next.js static export ───────────────────────────────────
-# This must be LAST so API routes take precedence.
-@app.get("/", response_class=HTMLResponse)
-def home() -> str:
-    index = STATIC_DIR / "index.html"
-    if not index.exists():
-        return "<h1>DEFault API is running. Frontend not yet built.</h1><p>Run: cd webapp/frontend && npm run build</p>"
-    return index.read_text(encoding="utf-8")
+# ── Serve Next.js static export ──────────────────────────────────────────────
+# Must be LAST — API routes defined above take precedence over the mount.
+# StaticFiles(html=True) serves index.html for any path not matched by a file,
+# which enables client-side routing and serves _next/static/ CSS/JS correctly.
+if STATIC_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="frontend")
+else:
+    @app.get("/", response_class=HTMLResponse)
+    def home() -> str:  # pragma: no cover
+        return (
+            "<h1>DEFault API is running. Frontend not yet built.</h1>"
+            "<p>Run: npm --prefix webapp/frontend run build</p>"
+        )
 
 
 @app.post("/api/predict")
