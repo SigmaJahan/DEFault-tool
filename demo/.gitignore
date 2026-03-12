@@ -1,0 +1,5 @@
+# Generated video recordings — upload to YouTube, don't commit to git
+recordings/
+*.mp4
+*.webm
+*.mov
