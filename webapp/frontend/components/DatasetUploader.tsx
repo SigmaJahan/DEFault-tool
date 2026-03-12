@@ -1,8 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { ChevronDown, ChevronRight, Upload, X, AlertTriangle } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Upload, X, AlertTriangle, Database } from "lucide-react";
 import type { DataMode } from "@/types/analysis";
+
+interface DatasetInfo {
+  rows: number;
+  features: number;
+  classes: string[];
+}
 
 interface DatasetUploaderProps {
   dataMode: DataMode;
@@ -29,7 +35,39 @@ export function DatasetUploader({
 }: DatasetUploaderProps) {
   const [open, setOpen] = useState(true);
   const [dragOver, setDragOver] = useState(false);
+  const [datasetInfo, setDatasetInfo] = useState<DatasetInfo | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Parse CSV when a file is selected
+  useEffect(() => {
+    if (!uploadedFile || !uploadedFile.name.toLowerCase().endsWith(".csv")) {
+      setDatasetInfo(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split("\n").filter((l) => l.trim().length > 0);
+        if (lines.length < 2) return;
+        // First line = header
+        const cols = lines[0].split(",").length;
+        const features = cols - 1;
+        const dataRows = lines.length - 1; // subtract header
+        // Collect unique values in last column
+        const labelSet = new Set<string>();
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(",");
+          const label = parts[parts.length - 1]?.trim();
+          if (label !== undefined && label !== "") labelSet.add(label);
+        }
+        setDatasetInfo({ rows: dataRows, features, classes: Array.from(labelSet).sort() });
+      } catch {
+        setDatasetInfo(null);
+      }
+    };
+    reader.readAsText(uploadedFile);
+  }, [uploadedFile]);
 
   function handleFile(file: File) {
     const name = file.name.toLowerCase();
@@ -137,24 +175,61 @@ export function DatasetUploader({
           {dataMode === "uploaded" && (
             <>
               {uploadedFile ? (
-                <div
-                  className="flex items-center justify-between px-2 py-1.5 rounded text-[11px]"
-                  style={{ background: "var(--bg-overlay)", border: "1px solid var(--border-subtle)" }}
-                >
-                  <span style={{ color: "var(--text-secondary)" }} className="truncate mr-2">
-                    {uploadedFile.name}
-                    <span className="ml-1" style={{ color: "var(--text-muted)" }}>
-                      ({formatBytes(uploadedFile.size)})
-                    </span>
-                  </span>
-                  <button
-                    onClick={() => !disabled && onFileChange(null)}
-                    disabled={disabled}
-                    style={{ color: "var(--text-muted)", cursor: disabled ? "not-allowed" : "pointer" }}
+                <>
+                  <div
+                    className="flex items-center justify-between px-2 py-1.5 rounded text-[11px]"
+                    style={{ background: "var(--bg-overlay)", border: "1px solid var(--border-subtle)" }}
                   >
-                    <X size={12} />
-                  </button>
-                </div>
+                    <span style={{ color: "var(--text-secondary)" }} className="truncate mr-2">
+                      {uploadedFile.name}
+                      <span className="ml-1" style={{ color: "var(--text-muted)" }}>
+                        ({formatBytes(uploadedFile.size)})
+                      </span>
+                    </span>
+                    <button
+                      onClick={() => { if (!disabled) { onFileChange(null); setDatasetInfo(null); } }}
+                      disabled={disabled}
+                      style={{ color: "var(--text-muted)", cursor: disabled ? "not-allowed" : "pointer" }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                  {datasetInfo && (
+                    <div
+                      className="flex flex-col gap-1 px-2 py-2 rounded text-[10px]"
+                      style={{ background: "var(--accent-dim)", border: "1px solid var(--accent)", borderColor: "rgba(88,166,255,0.3)" }}
+                    >
+                      <div className="flex items-center gap-1.5 font-semibold" style={{ color: "var(--accent)" }}>
+                        <Database size={10} aria-hidden="true" />
+                        Dataset Preview
+                      </div>
+                      <div className="grid grid-cols-3 gap-1 mt-0.5">
+                        <div className="flex flex-col">
+                          <span style={{ color: "var(--text-muted)" }}>Samples</span>
+                          <span className="font-mono font-semibold" style={{ color: "var(--text-primary)" }}>{datasetInfo.rows.toLocaleString()}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span style={{ color: "var(--text-muted)" }}>Features</span>
+                          <span className="font-mono font-semibold" style={{ color: "var(--text-primary)" }}>{datasetInfo.features}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span style={{ color: "var(--text-muted)" }}>Classes</span>
+                          <span className="font-mono font-semibold" style={{ color: "var(--text-primary)" }}>{datasetInfo.classes.length}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-0.5">
+                        {datasetInfo.classes.slice(0, 6).map((c) => (
+                          <span key={c} className="px-1 py-0.5 rounded font-mono" style={{ background: "var(--bg-overlay)", color: "var(--text-code)" }}>
+                            {c}
+                          </span>
+                        ))}
+                        {datasetInfo.classes.length > 6 && (
+                          <span style={{ color: "var(--text-muted)" }}>+{datasetInfo.classes.length - 6} more</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div
                   className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-lg text-center"

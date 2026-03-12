@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import {
   AlertCircle, AlertTriangle, Zap, RefreshCw, Play,
-  Code2, GitBranch, BarChart2,
+  Code2, GitBranch, BarChart2, ChevronRight,
 } from "lucide-react";
 
 import { useDiagnosisStore } from "@/lib/store";
@@ -41,6 +41,8 @@ export default function Home() {
   } = store;
 
   const [mobileTab, setMobileTab] = useState<MobileTab>("editor");
+  // 0 = nothing revealed yet, 1 = stage1 visible, 2 = +stage2, 3 = +stage3/SHAP
+  const [revealedStages, setRevealedStages] = useState<0 | 1 | 2 | 3>(0);
 
   const isRunning = mode === "analyzing_static" || mode === "analyzing_full" || mode === "training";
   const hasDone = mode === "done_static" || mode === "done_full" || mode === "done_training";
@@ -55,6 +57,11 @@ export default function Home() {
       saveDraft({ code, modelName, dataMode, trainingEpochs, numSamples, fullResult, codeResult, liveMetrics, isDummyData });
     }
   }, [hasDone]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-reveal all stages for static analysis (no progressive reveal needed)
+  useEffect(() => {
+    if (mode === "done_static") setRevealedStages(3);
+  }, [mode]);
 
   // Auto-switch to results on mobile once analysis completes
   useEffect(() => {
@@ -81,6 +88,7 @@ export default function Home() {
   // ── Static-only analysis ─────────────────────────────────────────────────
   const runStaticAnalysis = useCallback(async () => {
     if (!code.trim() || isRunning) return;
+    setRevealedStages(0);
     setMode("analyzing_static");
     setCurrentStage(3);
     setError(null);
@@ -107,6 +115,7 @@ export default function Home() {
       setError("Please upload a dataset file first.");
       return;
     }
+    setRevealedStages(0);
     const ctrl = new AbortController();
     setAbortController(ctrl);
     resetTraining();
@@ -188,7 +197,7 @@ export default function Home() {
             className="text-[9px] uppercase tracking-widest hidden sm:block"
             style={{ color: "var(--text-muted)" }}
           >
-            Detection &amp; Explain Fault
+            Detect &amp; Explain Fault
           </span>
         </div>
 
@@ -295,7 +304,7 @@ export default function Home() {
             background: "var(--bg-card)",
           }}
         >
-          <div className="flex flex-col gap-3 p-4 h-full">
+          <div className="flex flex-col gap-3 p-4 min-h-full">
             {/* Code editor */}
             <div className="flex flex-col" style={{ flex: "1 1 280px", minHeight: 0 }}>
               <div
@@ -444,7 +453,7 @@ export default function Home() {
               />
             </Panel>
 
-            {/* Live training chart */}
+            {/* Live training chart — visible during and after training */}
             {(mode === "training" || mode === "done_training") && liveMetrics.length > 0 && (
               <Panel>
                 <LiveTrainingChart
@@ -456,8 +465,19 @@ export default function Home() {
               </Panel>
             )}
 
-            {/* Detection gauge */}
-            {stage1 && (
+            {/* ── Stage-by-stage progressive reveal (Train & Diagnose only) ── */}
+
+            {/* Reveal Stage 1 button — appears when training is done and stage 1 not yet shown */}
+            {mode === "done_training" && stage1 && revealedStages < 1 && (
+              <RevealStageButton
+                stage={1}
+                label="Stage 1: Fault Detection"
+                onClick={() => setRevealedStages(1)}
+              />
+            )}
+
+            {/* Stage 1: Detection gauge */}
+            {stage1 && revealedStages >= 1 && (
               <Panel>
                 <div
                   className="text-[9px] uppercase tracking-widest mb-3"
@@ -474,8 +494,17 @@ export default function Home() {
               </Panel>
             )}
 
-            {/* Category chart */}
-            {stage2 && (
+            {/* Reveal Stage 2 button */}
+            {mode === "done_training" && stage2 && revealedStages === 1 && (
+              <RevealStageButton
+                stage={2}
+                label="Stage 2: Fault Categories"
+                onClick={() => setRevealedStages(2)}
+              />
+            )}
+
+            {/* Stage 2: Category chart */}
+            {stage2 && revealedStages >= 2 && (
               <Panel>
                 <div
                   className="text-[9px] uppercase tracking-widest mb-3"
@@ -487,8 +516,17 @@ export default function Home() {
               </Panel>
             )}
 
-            {/* Fault taxonomy tree */}
-            {taxonomy && (
+            {/* Reveal Stage 3 button */}
+            {mode === "done_training" && staticResult && revealedStages === 2 && (
+              <RevealStageButton
+                stage={3}
+                label="Stage 3: Root Cause Analysis"
+                onClick={() => setRevealedStages(3)}
+              />
+            )}
+
+            {/* Fault taxonomy tree — shown for static immediately, for training after stage 3 reveal */}
+            {taxonomy && (mode !== "done_training" || revealedStages >= 3) && (
               <Panel>
                 <FaultTaxonomyTree
                   root={taxonomy.root}
@@ -532,8 +570,9 @@ export default function Home() {
               </div>
             )}
 
-            {/* SHAP waterfall */}
-            {staticResult && staticResult.top_features.length > 0 && (
+            {/* SHAP waterfall — immediate for static, only after stage 3 revealed for training */}
+            {staticResult && staticResult.top_features.length > 0 &&
+             (mode !== "done_training" || revealedStages >= 3) && (
               <Panel>
                 <SHAPWaterfallChart
                   features={staticResult.top_features}
@@ -543,8 +582,9 @@ export default function Home() {
               </Panel>
             )}
 
-            {/* Insights */}
-            {(hasDone || mode === "error") && (
+            {/* Insights — same gating */}
+            {(hasDone || mode === "error") &&
+             (mode !== "done_training" || revealedStages >= 3) && (
               <Panel>
                 <InsightsPanel
                   stage3={staticResult}
@@ -563,6 +603,29 @@ export default function Home() {
         </aside>
       </div>
     </div>
+  );
+}
+
+// ── Reveal stage button ───────────────────────────────────────────────────
+
+function RevealStageButton({
+  stage, label, onClick,
+}: { stage: number; label: string; onClick: () => void }) {
+  return (
+    <button
+      className="w-full py-3 flex items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-all animate-fade-in"
+      style={{
+        background: "var(--accent-dim)",
+        border: "1.5px dashed var(--accent)",
+        color: "var(--accent)",
+        cursor: "pointer",
+      }}
+      onClick={onClick}
+      aria-label={`Reveal ${label}`}
+    >
+      <ChevronRight size={13} aria-hidden="true" />
+      Reveal {label}
+    </button>
   );
 }
 

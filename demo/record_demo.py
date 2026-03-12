@@ -9,11 +9,12 @@ Recording strategy:
   - Real dataset: Breast Cancer Wisconsin (569 samples, 20 features, binary)
   - Generous pauses on every result screen so the audience can read everything
 
-Scenes (timed to ~4 min total):
-  1. Landing page    — 3-column layout overview           (~20 s)
-  2. Static analysis — buggy classifier → SHAP waterfall  (~80 s)
-  3. Train & Diagnose— real dataset upload → live epochs
-                       → full 3-stage results              (~130 s)
+User-focused workflow (mirrors what a real user would do):
+  Scene 1: Tool overview — empty 3-column layout
+  Scene 2: Check Model — paste buggy code → check → SHAP results (all at once)
+  Scene 3: Train & Diagnose — paste better code → upload dataset → see dataset info
+           → click Train & Diagnose → watch epochs live → click Reveal Stage 1
+           → click Reveal Stage 2 → click Reveal Stage 3 → SHAP + Insights
 
 Usage:
   source .venv/bin/activate
@@ -127,6 +128,8 @@ async def scroll_panel(page, selector: str, px: int, steps: int = 30, tick_ms: i
         return
     await page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     await asyncio.sleep(0.15)
+    if px == 0:
+        return   # just hover, no scroll
     step_px = px // steps
     for _ in range(steps):
         await page.mouse.wheel(0, step_px)
@@ -142,6 +145,16 @@ async def set_editor_code(page, code: str):
         [code],
     )
     await p(P_SHORT)  # pause so code is visible before moving on
+
+
+async def scroll_editor_to_line(page, line_number: int):
+    """Scroll the Monaco editor to a specific line — shows code to audience."""
+    await page.evaluate(
+        "([ln]) => { const ed = window.monaco.editor.getEditors()[0]; "
+        "ed.revealLineInCenter(ln, 0); }",
+        [line_number],
+    )
+    await p(1.5)
 
 
 async def type_into(page, locator, text: str, char_delay_ms: int = 65):
@@ -203,24 +216,30 @@ async def run():
         ctx  = await browser.new_context(viewport=VIEWPORT)
         page = await ctx.new_page()
 
-        # ── Load page first, then start recording so first frame is clean ────
-        print("\n[Scene 1] Loading DEFault tool…")
+        # ── Load page, wipe any saved draft, reload for a truly empty tool ────
+        print("\n[Init] Loading DEFault tool (first load to clear state)…")
         await page.goto(URL, wait_until="networkidle", timeout=45_000)
-        await p(2.0)   # settle
+        await p(1.5)
+
+        print("  Clearing localStorage draft…")
+        await page.evaluate("localStorage.clear()")
+        await page.reload(wait_until="networkidle", timeout=45_000)
+        await p(2.0)   # let the empty tool fully settle
 
         rec = start_capture(OUT_MP4)
         await p(2.5)   # let ffmpeg buffer a clean opening frame
 
         # ── SCENE 1: Tool overview (~20 s) ───────────────────────────────────
-        print("  Showing 3-column layout…")
-        await p(P_READ)   # audience sees the empty tool
+        print("\n[Scene 1] Showing empty tool layout…")
+        await p(P_READ)   # audience sees the completely empty tool
 
-        # Pan mouse slowly across each panel to introduce them
         PANELS = [
             '[aria-label="Model code editor and training configuration"]',
             '[aria-label="Analysis pipeline and training charts"]',
             '[aria-label="SHAP explanations and fault insights"]',
         ]
+
+        # Pan mouse slowly across each panel to introduce them
         for sel in PANELS:
             el = page.locator(sel).first
             box = await el.bounding_box()
@@ -231,11 +250,16 @@ async def run():
         # ── SCENE 2: Static code analysis (~80 s) ────────────────────────────
         print("\n[Scene 2] Static code analysis…")
 
-        # Click editor region to focus, then load code
+        # Focus editor then load buggy code — shows as if pasted
         await page.locator(PANELS[0]).first.click()
         await p(P_TINY)
         await set_editor_code(page, BUGGY_CODE)
-        await p(P_READ)   # audience reads the buggy code
+
+        # Scroll editor to the buggy line so audience can see it clearly
+        await scroll_editor_to_line(page, 9)   # Dense(10, activation='relu') — the bug
+        await p(P_READ)
+        await scroll_editor_to_line(page, 1)   # scroll back to top
+        await p(P_SHORT)
 
         # Set model name visibly
         print("  Setting model name…")
@@ -249,24 +273,13 @@ async def run():
         )
         await hover_then_click(page, check_btn, pre_hover_pause=1.5, post_click_pause=2.0)
 
-        # Wait for SHAP waterfall to appear
+        # Wait for SHAP waterfall (static analysis auto-reveals all)
         print("  Waiting for analysis results…")
         await page.get_by_text("SHAP Waterfall: Root Cause").wait_for(timeout=60_000)
-        await p(P_READ)   # audience reads the detection probability
+        await p(P_READ)   # audience reads the detection probability in centre panel
 
-        # ── Right panel: fault probability + SHAP waterfall + insights ───────
-        print("  Showing SHAP waterfall…")
-        await scroll_panel(page, PANELS[2], px=0)   # hover to focus
-        await p(P_STUDY)  # SHAP waterfall — let audience study it
-
-        await scroll_panel(page, PANELS[2], px=350, steps=20)
-        await p(P_STUDY)  # insights panel — let audience read recommendations
-
-        await scroll_panel(page, PANELS[2], px=-350, steps=20)
-        await p(P_SHORT)
-
-        # ── Centre panel: pipeline stages + taxonomy tree ─────────────────────
-        print("  Showing pipeline visualisation…")
+        # ── Centre panel: detection gauge + taxonomy ──────────────────────────
+        print("  Showing pipeline + taxonomy…")
         await scroll_panel(page, PANELS[1], px=0)   # hover to focus
         await p(P_STUDY)  # detection gauge + pipeline diagram
 
@@ -274,6 +287,17 @@ async def run():
         await p(P_STUDY)  # fault taxonomy tree highlighted
 
         await scroll_panel(page, PANELS[1], px=-500, steps=25)
+        await p(P_SHORT)
+
+        # ── Right panel: SHAP waterfall + insights ────────────────────────────
+        print("  Showing SHAP waterfall…")
+        await scroll_panel(page, PANELS[2], px=0)
+        await p(P_STUDY)  # SHAP waterfall — audience reads top contributors
+
+        await scroll_panel(page, PANELS[2], px=350, steps=20)
+        await p(P_STUDY)  # insights panel — plain-English recommendations
+
+        await scroll_panel(page, PANELS[2], px=-350, steps=20)
         await p(P_SHORT)
 
         # Reset before Scene 3
@@ -284,11 +308,16 @@ async def run():
         # ── SCENE 3: Live Train & Diagnose with real dataset (~130 s) ─────────
         print("\n[Scene 3] Live training on real dataset…")
 
-        # Load training code
+        # Load binary classifier code
         await page.locator(PANELS[0]).first.click()
         await p(P_TINY)
         await set_editor_code(page, TRAIN_CODE)
-        await p(P_READ)   # audience reads the binary classifier code
+
+        # Scroll editor to buggy line: Dense(1, activation='relu')
+        await scroll_editor_to_line(page, 9)
+        await p(P_READ)   # audience spots the relu bug
+        await scroll_editor_to_line(page, 1)
+        await p(P_SHORT)
 
         # Update model name
         print("  Setting model name…")
@@ -303,7 +332,11 @@ async def run():
         print("  Uploading breast_cancer_20f.csv…")
         file_input = page.locator('input[type="file"][accept=".csv,.npy,.npz"]')
         await file_input.set_input_files(str(DATASET_CSV))
-        await p(P_READ)   # show the uploaded filename
+        await p(P_STUDY)  # audience reads dataset info: 569 samples, 20 features, 2 classes
+
+        # Scroll left panel to show dataset info card clearly
+        await scroll_panel(page, PANELS[0], px=200, steps=15)
+        await p(P_READ)   # dataset info fully visible
 
         # Hover and click Train & Diagnose
         print("  Clicking Train & Diagnose…")
@@ -313,46 +346,56 @@ async def run():
         )
         await hover_then_click(page, train_btn, pre_hover_pause=1.5, post_click_pause=2.0)
 
-        # Move focus to the centre panel to watch epochs stream
+        # Move focus to centre panel to watch epochs stream live
         el = page.locator(PANELS[1]).first
         box = await el.bounding_box()
         if box:
             await page.mouse.move(box["x"] + box["width"] / 2, box["y"] + 40)
-        await p(P_EPOCH)   # watch the live epoch chart fill in
+        await p(P_EPOCH)   # watch live epoch chart fill in
         await p(P_EPOCH)   # keep watching — training takes ~40-60 s on HF
 
-        # Wait for full diagnosis to complete
-        print("  Waiting for training + full diagnosis…")
-        await page.get_by_text("SHAP Waterfall: Root Cause").wait_for(timeout=150_000)
-        await p(P_READ)    # audience sees training complete
+        # Wait for "Reveal Stage 1" button — training + background analysis complete
+        print("  Waiting for training to complete…")
+        reveal_stage1_btn = page.get_by_role("button", name="Reveal Stage 1: Fault Detection")
+        await reveal_stage1_btn.wait_for(timeout=150_000)
+        await p(P_READ)    # audience sees training complete + the reveal button appears
 
-        # ── Centre panel: live chart → detection gauge → category bars ────────
-        print("  Scrolling pipeline results…")
-        await scroll_panel(page, PANELS[1], px=0)
-        await p(P_STUDY)   # live training chart
+        # ── Step 1: Reveal Stage 1 — Fault Detection ─────────────────────────
+        print("  Revealing Stage 1: Fault Detection…")
+        await hover_then_click(page, reveal_stage1_btn, pre_hover_pause=1.5, post_click_pause=P_SHORT)
+        await scroll_panel(page, PANELS[1], px=0)   # hover on centre panel
+        await p(P_STUDY)   # audience reads detection probability + gauge
 
-        await scroll_panel(page, PANELS[1], px=350, steps=20)
-        await p(P_STUDY)   # Stage 1 detection gauge
+        # ── Step 2: Reveal Stage 2 — Fault Categories ────────────────────────
+        print("  Revealing Stage 2: Fault Categories…")
+        reveal_stage2_btn = page.get_by_role("button", name="Reveal Stage 2: Fault Categories")
+        await hover_then_click(page, reveal_stage2_btn, pre_hover_pause=1.5, post_click_pause=P_SHORT)
+        await scroll_panel(page, PANELS[1], px=200, steps=15)
+        await p(P_STUDY)   # audience reads category chart
 
-        await scroll_panel(page, PANELS[1], px=350, steps=20)
-        await p(P_STUDY)   # Stage 2 category chart
+        # ── Step 3: Reveal Stage 3 — Root Cause Analysis ─────────────────────
+        print("  Revealing Stage 3: Root Cause Analysis…")
+        reveal_stage3_btn = page.get_by_role("button", name="Reveal Stage 3: Root Cause Analysis")
+        await hover_then_click(page, reveal_stage3_btn, pre_hover_pause=1.5, post_click_pause=P_SHORT)
 
-        await scroll_panel(page, PANELS[1], px=350, steps=20)
-        await p(P_STUDY)   # taxonomy tree with flagged nodes
-
-        await scroll_panel(page, PANELS[1], px=-1050, steps=40)
-        await p(P_SHORT)   # scroll back to top
-
-        # ── Right panel: SHAP waterfall → insights ────────────────────────────
-        print("  Scrolling SHAP + insights…")
+        # ── Right panel: SHAP waterfall + insights (now unlocked) ────────────
+        print("  Showing SHAP waterfall for training run…")
         await scroll_panel(page, PANELS[2], px=0)
-        await p(P_STUDY)   # SHAP waterfall for training run
+        await p(P_STUDY)   # SHAP waterfall — root cause clearly shown
 
         await scroll_panel(page, PANELS[2], px=400, steps=25)
         await p(P_STUDY)   # insights and recommendations
 
         await scroll_panel(page, PANELS[2], px=-400, steps=25)
-        await p(P_READ)    # clean final frame showing tool header
+        await p(P_SHORT)
+
+        # ── Centre panel: taxonomy tree with flagged nodes ─────────────────────
+        print("  Showing taxonomy tree…")
+        await scroll_panel(page, PANELS[1], px=400, steps=20)
+        await p(P_STUDY)   # taxonomy tree with flagged nodes
+
+        await scroll_panel(page, PANELS[1], px=-800, steps=40)
+        await p(P_READ)    # clean final frame showing complete tool
 
         print("\n[Done] Closing browser…")
         await ctx.close()
